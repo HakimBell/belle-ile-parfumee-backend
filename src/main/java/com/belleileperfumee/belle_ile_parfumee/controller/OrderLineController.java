@@ -21,7 +21,13 @@ public class OrderLineController {
     @PostMapping
     public ResponseEntity<OrderLine> createOrderLine(@RequestBody OrderLine orderLine) {
         OrderLine createdOrderLine = orderLineService.createOrderLine(orderLine);
-        return new ResponseEntity<>(createdOrderLine, HttpStatus.CREATED);
+
+        // ✅ VÉRIFIER SI LA CRÉATION A RÉUSSI
+        if (createdOrderLine != null) {
+            return new ResponseEntity<>(createdOrderLine, HttpStatus.CREATED);
+        }
+
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // Erreur si création échouée
     }
 
     // READ - Récupérer toutes les lignes de commande

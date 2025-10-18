@@ -1,6 +1,8 @@
 package com.belleileperfumee.belle_ile_parfumee.service;
 
+import com.belleileperfumee.belle_ile_parfumee.entity.Account;
 import com.belleileperfumee.belle_ile_parfumee.entity.Client;
+import com.belleileperfumee.belle_ile_parfumee.repository.AccountRepository;
 import com.belleileperfumee.belle_ile_parfumee.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,12 +16,25 @@ public class ClientService {
     @Autowired
     private ClientRepository clientRepository;
 
+    @Autowired
+    private AccountRepository accountRepository;  // ✅ AJOUTER
+
     // Créer un nouveau client
     public Client createClient(Client client) {
         // Vérifier si l'email existe déjà
         if (clientRepository.existsById(client.getEmail())) {
             return null; // Email déjà utilisé
         }
+
+        // ✅ RÉCUPÉRER L'ACCOUNT DEPUIS LA BASE DE DONNÉES
+        Optional<Account> accountOpt = accountRepository.findById(client.getEmail());
+        if (accountOpt.isEmpty()) {
+            return null; // Account n'existe pas
+        }
+
+        // ✅ ASSOCIER L'ACCOUNT AU CLIENT
+        client.setAccount(accountOpt.get());
+
         return clientRepository.save(client);
     }
 
@@ -41,6 +56,16 @@ public class ClientService {
     // Modifier un client
     public Client updateClient(Client updatedClient) {
         if (clientRepository.existsById(updatedClient.getEmail())) {
+
+            // ✅ RÉCUPÉRER L'ACCOUNT DEPUIS LA BASE DE DONNÉES
+            Optional<Account> accountOpt = accountRepository.findById(updatedClient.getEmail());
+            if (accountOpt.isEmpty()) {
+                return null; // Account n'existe pas
+            }
+
+            // ✅ ASSOCIER L'ACCOUNT AU CLIENT
+            updatedClient.setAccount(accountOpt.get());
+
             return clientRepository.save(updatedClient);
         }
         return null; // Client non trouvé

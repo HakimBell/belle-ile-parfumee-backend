@@ -52,8 +52,11 @@ public class ClientController {
     }
 
     // UPDATE - Modifier un client
-    @PutMapping
-    public ResponseEntity<Client> updateClient(@RequestBody Client client) {
+    @PutMapping("/{email}")  // ✅ AJOUTER /{email}
+    public ResponseEntity<Client> updateClient(@PathVariable String email, @RequestBody Client client) {
+        // Assurer que l'email du path correspond à celui du body
+        client.setEmail(email);
+
         Client updatedClient = clientService.updateClient(client);
         if (updatedClient != null) {
             return new ResponseEntity<>(updatedClient, HttpStatus.OK);

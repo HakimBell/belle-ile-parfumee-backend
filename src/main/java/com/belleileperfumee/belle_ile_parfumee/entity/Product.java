@@ -44,4 +44,9 @@ public class Product {
 
     @Column(nullable = false)
     private Integer size;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDate.now();
+    }
 }
