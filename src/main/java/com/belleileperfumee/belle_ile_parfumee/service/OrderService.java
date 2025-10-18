@@ -1,7 +1,9 @@
 package com.belleileperfumee.belle_ile_parfumee.service;
 
+import com.belleileperfumee.belle_ile_parfumee.entity.Client;
 import com.belleileperfumee.belle_ile_parfumee.entity.Order;
 import com.belleileperfumee.belle_ile_parfumee.entity.OrderLine;
+import com.belleileperfumee.belle_ile_parfumee.repository.ClientRepository;
 import com.belleileperfumee.belle_ile_parfumee.repository.OrderRepository;
 import com.belleileperfumee.belle_ile_parfumee.repository.OrderLineRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,12 +23,25 @@ public class OrderService {
     @Autowired
     private OrderLineRepository orderLineRepository;
 
+    @Autowired
+    private ClientRepository clientRepository;  // ✅ AJOUTER
+
     // Créer une nouvelle commande
     public Order createOrder(Order order) {
         // Définir la date de commande si elle n'est pas définie
         if (order.getOrderDate() == null) {
             order.setOrderDate(LocalDate.now());
         }
+
+        // ✅ RÉCUPÉRER LE CLIENT DEPUIS LA BASE DE DONNÉES
+        Optional<Client> clientOpt = clientRepository.findById(order.getEmail());
+        if (clientOpt.isEmpty()) {
+            return null; // Client n'existe pas
+        }
+
+        // ✅ ASSOCIER LE CLIENT À LA COMMANDE
+        order.setClient(clientOpt.get());
+
         return orderRepository.save(order);
     }
 
