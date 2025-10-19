@@ -1,7 +1,7 @@
 package com.belleileperfumee.belle_ile_parfumee.controller;
 
-import com.belleileperfumee.belle_ile_parfumee.dto.AccountRequestDTO;
-import com.belleileperfumee.belle_ile_parfumee.dto.AccountResponseDTO;
+import com.belleileperfumee.belle_ile_parfumee.dto.account.AccountRequestDTO;
+import com.belleileperfumee.belle_ile_parfumee.dto.account.AccountResponseDTO;
 import com.belleileperfumee.belle_ile_parfumee.entity.Account;
 import com.belleileperfumee.belle_ile_parfumee.mapper.AccountMapper;
 import com.belleileperfumee.belle_ile_parfumee.service.AccountService;

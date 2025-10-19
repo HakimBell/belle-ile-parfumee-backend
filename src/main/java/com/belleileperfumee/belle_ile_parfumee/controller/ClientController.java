@@ -1,6 +1,9 @@
 package com.belleileperfumee.belle_ile_parfumee.controller;
 
+import com.belleileperfumee.belle_ile_parfumee.dto.client.ClientRequestDTO;
+import com.belleileperfumee.belle_ile_parfumee.dto.client.ClientResponseDTO;
 import com.belleileperfumee.belle_ile_parfumee.entity.Client;
+import com.belleileperfumee.belle_ile_parfumee.mapper.ClientMapper;
 import com.belleileperfumee.belle_ile_parfumee.service.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,48 +23,88 @@ public class ClientController {
 
     // CREATE - Créer un nouveau client
     @PostMapping
-    public ResponseEntity<Client> createClient(@RequestBody Client client) {
+    public ResponseEntity<ClientResponseDTO> createClient(@RequestBody ClientRequestDTO requestDTO) {
+        // 1. Convertir DTO → Entity
+        Client client = ClientMapper.toEntity(requestDTO);
+
+        // 2. Créer le client
         Client createdClient = clientService.createClient(client);
-        if (createdClient != null) {
-            return new ResponseEntity<>(createdClient, HttpStatus.CREATED);
+
+        // 3. Vérifier si la création a réussi
+        if (createdClient == null) {
+            return new ResponseEntity<>(HttpStatus.CONFLICT); // Email déjà utilisé
         }
-        return new ResponseEntity<>(HttpStatus.CONFLICT); // Email déjà utilisé
+
+        // 4. Convertir Entity → ResponseDTO (SANS l'Account)
+        ClientResponseDTO responseDTO = ClientMapper.toResponseDTO(createdClient);
+
+        // 5. Renvoyer le DTO
+        return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
     }
 
     // READ - Récupérer tous les clients
     @GetMapping
-    public ResponseEntity<List<Client>> getAllClients() {
+    public ResponseEntity<List<ClientResponseDTO>> getAllClients() {
         List<Client> clients = clientService.getAllClients();
-        return new ResponseEntity<>(clients, HttpStatus.OK);
+
+        // Convertir chaque Client → ClientResponseDTO
+        List<ClientResponseDTO> responseDTOs = clients.stream()
+                .map(ClientMapper::toResponseDTO)
+                .toList();
+
+        return new ResponseEntity<>(responseDTOs, HttpStatus.OK);
     }
 
     // READ - Récupérer un client par email
     @GetMapping("/{email}")
-    public ResponseEntity<Client> getClientByEmail(@PathVariable String email) {
+    public ResponseEntity<ClientResponseDTO> getClientByEmail(@PathVariable String email) {
         Optional<Client> client = clientService.getClientByEmail(email);
-        return client.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+        if (client.isPresent()) {
+            // Convertir Entity → ResponseDTO (SANS l'Account)
+            ClientResponseDTO responseDTO = ClientMapper.toResponseDTO(client.get());
+            return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     // READ - Récupérer un client par téléphone
     @GetMapping("/phone/{phoneNumber}")
-    public ResponseEntity<Client> getClientByPhoneNumber(@PathVariable String phoneNumber) {
+    public ResponseEntity<ClientResponseDTO> getClientByPhoneNumber(@PathVariable String phoneNumber) {
         Optional<Client> client = clientService.getClientByPhoneNumber(phoneNumber);
-        return client.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+        if (client.isPresent()) {
+            // Convertir Entity → ResponseDTO (SANS l'Account)
+            ClientResponseDTO responseDTO = ClientMapper.toResponseDTO(client.get());
+            return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     // UPDATE - Modifier un client
-    @PutMapping("/{email}")  // ✅ AJOUTER /{email}
-    public ResponseEntity<Client> updateClient(@PathVariable String email, @RequestBody Client client) {
+    @PutMapping("/{email}")
+    public ResponseEntity<ClientResponseDTO> updateClient(@PathVariable String email, @RequestBody ClientRequestDTO requestDTO) {
         // Assurer que l'email du path correspond à celui du body
-        client.setEmail(email);
+        requestDTO.setEmail(email);
 
+        // 1. Convertir DTO → Entity
+        Client client = ClientMapper.toEntity(requestDTO);
+
+        // 2. Modifier le client
         Client updatedClient = clientService.updateClient(client);
-        if (updatedClient != null) {
-            return new ResponseEntity<>(updatedClient, HttpStatus.OK);
+
+        // 3. Vérifier si la modification a réussi
+        if (updatedClient == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        // 4. Convertir Entity → ResponseDTO (SANS l'Account)
+        ClientResponseDTO responseDTO = ClientMapper.toResponseDTO(updatedClient);
+
+        // 5. Renvoyer le DTO
+        return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
 
     // DELETE - Supprimer un client

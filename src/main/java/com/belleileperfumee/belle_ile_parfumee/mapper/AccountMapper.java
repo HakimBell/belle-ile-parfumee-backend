@@ -1,7 +1,7 @@
 package com.belleileperfumee.belle_ile_parfumee.mapper;
 
-import com.belleileperfumee.belle_ile_parfumee.dto.AccountRequestDTO;
-import com.belleileperfumee.belle_ile_parfumee.dto.AccountResponseDTO;
+import com.belleileperfumee.belle_ile_parfumee.dto.account.AccountRequestDTO;
+import com.belleileperfumee.belle_ile_parfumee.dto.account.AccountResponseDTO;
 import com.belleileperfumee.belle_ile_parfumee.entity.Account;
 
 public class AccountMapper {

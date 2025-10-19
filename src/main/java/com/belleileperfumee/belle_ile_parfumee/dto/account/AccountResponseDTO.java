@@ -1,4 +1,4 @@
-package com.belleileperfumee.belle_ile_parfumee.dto;
+package com.belleileperfumee.belle_ile_parfumee.dto.account;
 
 import lombok.Data;
 
