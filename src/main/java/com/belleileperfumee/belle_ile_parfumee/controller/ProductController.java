@@ -1,6 +1,9 @@
 package com.belleileperfumee.belle_ile_parfumee.controller;
 
+import com.belleileperfumee.belle_ile_parfumee.dto.product.ProductRequestDTO;
+import com.belleileperfumee.belle_ile_parfumee.dto.product.ProductResponseDTO;
 import com.belleileperfumee.belle_ile_parfumee.entity.Product;
+import com.belleileperfumee.belle_ile_parfumee.mapper.ProductMapper;
 import com.belleileperfumee.belle_ile_parfumee.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,34 +23,74 @@ public class ProductController {
 
     // CREATE - Créer un nouveau produit
     @PostMapping
-    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
+    public ResponseEntity<ProductResponseDTO> createProduct(@RequestBody ProductRequestDTO requestDTO) {
+        // 1. Convertir DTO → Entity
+        Product product = ProductMapper.toEntity(requestDTO);
+
+        // 2. Créer le produit
         Product createdProduct = productService.createProduct(product);
-        return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
+
+        // 3. Vérifier si la création a réussi
+        if (createdProduct == null) {
+            return new ResponseEntity<>(HttpStatus.CONFLICT); // Product code déjà utilisé
+        }
+
+        // 4. Convertir Entity → ResponseDTO
+        ProductResponseDTO responseDTO = ProductMapper.toResponseDTO(createdProduct);
+
+        // 5. Renvoyer le DTO
+        return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
     }
 
     // READ - Récupérer tous les produits
     @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts() {
+    public ResponseEntity<List<ProductResponseDTO>> getAllProducts() {
         List<Product> products = productService.getAllProducts();
-        return new ResponseEntity<>(products, HttpStatus.OK);
+
+        // Convertir chaque Product → ProductResponseDTO
+        List<ProductResponseDTO> responseDTOs = products.stream()
+                .map(ProductMapper::toResponseDTO)
+                .toList();
+
+        return new ResponseEntity<>(responseDTOs, HttpStatus.OK);
     }
 
     // READ - Récupérer un produit par code
     @GetMapping("/{productCode}")
-    public ResponseEntity<Product> getProductByCode(@PathVariable String productCode) {
+    public ResponseEntity<ProductResponseDTO> getProductByCode(@PathVariable String productCode) {
         Optional<Product> product = productService.getProductByCode(productCode);
-        return product.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+        if (product.isPresent()) {
+            // Convertir Entity → ResponseDTO
+            ProductResponseDTO responseDTO = ProductMapper.toResponseDTO(product.get());
+            return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     // UPDATE - Modifier un produit
-    @PutMapping
-    public ResponseEntity<Product> updateProduct(@RequestBody Product product) {
+    @PutMapping("/{productCode}")
+    public ResponseEntity<ProductResponseDTO> updateProduct(@PathVariable String productCode, @RequestBody ProductRequestDTO requestDTO) {
+        // Assurer que le productCode du path correspond à celui du body
+        requestDTO.setProductCode(productCode);
+
+        // 1. Convertir DTO → Entity
+        Product product = ProductMapper.toEntity(requestDTO);
+
+        // 2. Modifier le produit
         Product updatedProduct = productService.updateProduct(product);
-        if (updatedProduct != null) {
-            return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+
+        // 3. Vérifier si la modification a réussi
+        if (updatedProduct == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        // 4. Convertir Entity → ResponseDTO
+        ProductResponseDTO responseDTO = ProductMapper.toResponseDTO(updatedProduct);
+
+        // 5. Renvoyer le DTO
+        return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
 
     // DELETE - Supprimer un produit
@@ -62,15 +105,27 @@ public class ProductController {
 
     // BONUS - Filtrer par marque
     @GetMapping("/brand/{brand}")
-    public ResponseEntity<List<Product>> getProductsByBrand(@PathVariable String brand) {
+    public ResponseEntity<List<ProductResponseDTO>> getProductsByBrand(@PathVariable String brand) {
         List<Product> products = productService.getProductsByBrand(brand);
-        return new ResponseEntity<>(products, HttpStatus.OK);
+
+        // Convertir chaque Product → ProductResponseDTO
+        List<ProductResponseDTO> responseDTOs = products.stream()
+                .map(ProductMapper::toResponseDTO)
+                .toList();
+
+        return new ResponseEntity<>(responseDTOs, HttpStatus.OK);
     }
 
     // BONUS - Filtrer par genre
     @GetMapping("/gender/{gender}")
-    public ResponseEntity<List<Product>> getProductsByGender(@PathVariable String gender) {
+    public ResponseEntity<List<ProductResponseDTO>> getProductsByGender(@PathVariable String gender) {
         List<Product> products = productService.getProductsByGender(gender);
-        return new ResponseEntity<>(products, HttpStatus.OK);
+
+        // Convertir chaque Product → ProductResponseDTO
+        List<ProductResponseDTO> responseDTOs = products.stream()
+                .map(ProductMapper::toResponseDTO)
+                .toList();
+
+        return new ResponseEntity<>(responseDTOs, HttpStatus.OK);
     }
 }
