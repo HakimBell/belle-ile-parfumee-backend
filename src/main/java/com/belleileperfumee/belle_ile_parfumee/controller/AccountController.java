@@ -1,6 +1,9 @@
 package com.belleileperfumee.belle_ile_parfumee.controller;
 
+import com.belleileperfumee.belle_ile_parfumee.dto.AccountRequestDTO;
+import com.belleileperfumee.belle_ile_parfumee.dto.AccountResponseDTO;
 import com.belleileperfumee.belle_ile_parfumee.entity.Account;
+import com.belleileperfumee.belle_ile_parfumee.mapper.AccountMapper;
 import com.belleileperfumee.belle_ile_parfumee.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,45 +24,41 @@ public class AccountController {
 
     // Inscription - Créer un nouveau compte
     @PostMapping("/register")
-    public ResponseEntity<Map<String, String>> register(@RequestBody Account account) {
-        Map<String, String> response = new HashMap<>();
+    public ResponseEntity<AccountResponseDTO> register(@RequestBody AccountRequestDTO requestDTO) {
+        // 1. Convertir DTO → Entity
+        Account account = AccountMapper.toEntity(requestDTO);
 
-        // Vérifier si l'email existe déjà
-        if (accountService.emailExists(account.getEmail())) {
-            response.put("message", "Email déjà utilisé");
-            return new ResponseEntity<>(response, HttpStatus.CONFLICT);
-        }
-
+        // 2. Créer le compte (logique métier dans le Service)
         Account createdAccount = accountService.createAccount(account);
-        if (createdAccount != null) {
-            response.put("message", "Compte créé avec succès");
-            response.put("email", createdAccount.getEmail());
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
+
+        // 3. Vérifier si la création a réussi
+        if (createdAccount == null) {
+            return new ResponseEntity<>(HttpStatus.CONFLICT); // Email déjà utilisé
         }
 
-        response.put("message", "Erreur lors de la création du compte");
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        // 4. Convertir Entity → ResponseDTO (SANS le password)
+        AccountResponseDTO responseDTO = AccountMapper.toResponseDTO(createdAccount);
+
+        // 5. Renvoyer le DTO
+        return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
     }
 
     // Connexion - Vérifier email et mot de passe
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> credentials) {
-        Map<String, String> response = new HashMap<>();
+    public ResponseEntity<AccountResponseDTO> login(@RequestBody AccountRequestDTO requestDTO) {
+        // 1. Vérifier les identifiants
+        Account account = accountService.login(requestDTO.getEmail(), requestDTO.getPassword());
 
-        String email = credentials.get("email");
-        String password = credentials.get("password");
-
-        Account account = accountService.login(email, password);
-
-        if (account != null) {
-            response.put("message", "Connexion réussie");
-            response.put("email", account.getEmail());
-            response.put("role", account.getRole());
-            return new ResponseEntity<>(response, HttpStatus.OK);
+        // 2. Si login échoué
+        if (account == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
-        response.put("message", "Email ou mot de passe incorrect");
-        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+        // 3. Convertir Entity → ResponseDTO (SANS le password)
+        AccountResponseDTO responseDTO = AccountMapper.toResponseDTO(account);
+
+        // 4. Renvoyer le DTO
+        return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
 
     // Vérifier si un email existe
@@ -72,9 +71,15 @@ public class AccountController {
 
     // Récupérer un compte par email
     @GetMapping("/{email}")
-    public ResponseEntity<Account> getAccountByEmail(@PathVariable String email) {
+    public ResponseEntity<AccountResponseDTO> getAccountByEmail(@PathVariable String email) {
         Optional<Account> account = accountService.getAccountByEmail(email);
-        return account.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+        if (account.isPresent()) {
+            // Convertir Entity → ResponseDTO (SANS le password)
+            AccountResponseDTO responseDTO = AccountMapper.toResponseDTO(account.get());
+            return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 }
