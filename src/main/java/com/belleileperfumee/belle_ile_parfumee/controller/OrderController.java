@@ -1,6 +1,9 @@
 package com.belleileperfumee.belle_ile_parfumee.controller;
 
+import com.belleileperfumee.belle_ile_parfumee.dto.order.OrderRequestDTO;
+import com.belleileperfumee.belle_ile_parfumee.dto.order.OrderResponseDTO;
 import com.belleileperfumee.belle_ile_parfumee.entity.Order;
+import com.belleileperfumee.belle_ile_parfumee.mapper.OrderMapper;
 import com.belleileperfumee.belle_ile_parfumee.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -23,31 +26,63 @@ public class OrderController {
 
     // CREATE - Créer une nouvelle commande
     @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody Order order) {
+    public ResponseEntity<OrderResponseDTO> createOrder(@RequestBody OrderRequestDTO requestDTO) {
+        // 1. Convertir DTO → Entity
+        Order order = OrderMapper.toEntity(requestDTO);
+
+        // 2. Créer la commande
         Order createdOrder = orderService.createOrder(order);
-        return new ResponseEntity<>(createdOrder, HttpStatus.CREATED);
+
+        // 3. Vérifier si la création a réussi
+        if (createdOrder == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        // 4. Convertir Entity → ResponseDTO (SANS le Client)
+        OrderResponseDTO responseDTO = OrderMapper.toResponseDTO(createdOrder);
+
+        // 5. Renvoyer le DTO
+        return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
     }
 
     // READ - Récupérer toutes les commandes
     @GetMapping
-    public ResponseEntity<List<Order>> getAllOrders() {
+    public ResponseEntity<List<OrderResponseDTO>> getAllOrders() {
         List<Order> orders = orderService.getAllOrders();
-        return new ResponseEntity<>(orders, HttpStatus.OK);
+
+        // Convertir chaque Order → OrderResponseDTO
+        List<OrderResponseDTO> responseDTOs = orders.stream()
+                .map(OrderMapper::toResponseDTO)
+                .toList();
+
+        return new ResponseEntity<>(responseDTOs, HttpStatus.OK);
     }
 
     // READ - Récupérer une commande par numéro
     @GetMapping("/{commandNumber}")
-    public ResponseEntity<Order> getOrderByCommandNumber(@PathVariable String commandNumber) {
+    public ResponseEntity<OrderResponseDTO> getOrderByCommandNumber(@PathVariable String commandNumber) {
         Optional<Order> order = orderService.getOrderByCommandNumber(commandNumber);
-        return order.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+        if (order.isPresent()) {
+            // Convertir Entity → ResponseDTO (SANS le Client)
+            OrderResponseDTO responseDTO = OrderMapper.toResponseDTO(order.get());
+            return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     // READ - Récupérer les commandes d'un client
-    @GetMapping("/client/{clientEmail}")
-    public ResponseEntity<List<Order>> getOrdersByClientEmail(@PathVariable String clientEmail) {
-        List<Order> orders = orderService.getOrdersByClientEmail(clientEmail);
-        return new ResponseEntity<>(orders, HttpStatus.OK);
+    @GetMapping("/client/{email}")
+    public ResponseEntity<List<OrderResponseDTO>> getOrdersByClientEmail(@PathVariable String email) {
+        List<Order> orders = orderService.getOrdersByClientEmail(email);
+
+        // Convertir chaque Order → OrderResponseDTO
+        List<OrderResponseDTO> responseDTOs = orders.stream()
+                .map(OrderMapper::toResponseDTO)
+                .toList();
+
+        return new ResponseEntity<>(responseDTOs, HttpStatus.OK);
     }
 
     // READ - Récupérer les commandes entre deux dates
