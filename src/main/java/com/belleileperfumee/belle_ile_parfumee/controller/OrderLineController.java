@@ -1,6 +1,9 @@
 package com.belleileperfumee.belle_ile_parfumee.controller;
 
+import com.belleileperfumee.belle_ile_parfumee.dto.orderline.OrderLineRequestDTO;
+import com.belleileperfumee.belle_ile_parfumee.dto.orderline.OrderLineResponseDTO;
 import com.belleileperfumee.belle_ile_parfumee.entity.OrderLine;
+import com.belleileperfumee.belle_ile_parfumee.mapper.OrderLineMapper;
 import com.belleileperfumee.belle_ile_parfumee.service.OrderLineService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,36 +22,62 @@ public class OrderLineController {
 
     // CREATE - Ajouter un produit à une commande
     @PostMapping
-    public ResponseEntity<OrderLine> createOrderLine(@RequestBody OrderLine orderLine) {
+    public ResponseEntity<OrderLineResponseDTO> createOrderLine(@RequestBody OrderLineRequestDTO requestDTO) {
+        // 1. Convertir DTO → Entity
+        OrderLine orderLine = OrderLineMapper.toEntity(requestDTO);
+
+        // 2. Créer l'OrderLine
         OrderLine createdOrderLine = orderLineService.createOrderLine(orderLine);
 
-        // ✅ VÉRIFIER SI LA CRÉATION A RÉUSSI
-        if (createdOrderLine != null) {
-            return new ResponseEntity<>(createdOrderLine, HttpStatus.CREATED);
+        // 3. Vérifier si la création a réussi
+        if (createdOrderLine == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // Erreur si création échouée
+        // 4. Convertir Entity → ResponseDTO (SANS Product et Order complets)
+        OrderLineResponseDTO responseDTO = OrderLineMapper.toResponseDTO(createdOrderLine);
+
+        // 5. Renvoyer le DTO
+        return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
     }
 
     // READ - Récupérer toutes les lignes de commande
     @GetMapping
-    public ResponseEntity<List<OrderLine>> getAllOrderLines() {
+    public ResponseEntity<List<OrderLineResponseDTO>> getAllOrderLines() {
         List<OrderLine> orderLines = orderLineService.getAllOrderLines();
-        return new ResponseEntity<>(orderLines, HttpStatus.OK);
+
+        // Convertir chaque OrderLine → OrderLineResponseDTO
+        List<OrderLineResponseDTO> responseDTOs = orderLines.stream()
+                .map(OrderLineMapper::toResponseDTO)
+                .toList();
+
+        return new ResponseEntity<>(responseDTOs, HttpStatus.OK);
     }
 
     // READ - Récupérer les lignes d'une commande spécifique
     @GetMapping("/order/{commandNumber}")
-    public ResponseEntity<List<OrderLine>> getOrderLinesByCommandNumber(@PathVariable String commandNumber) {
+    public ResponseEntity<List<OrderLineResponseDTO>> getOrderLinesByCommandNumber(@PathVariable String commandNumber) {
         List<OrderLine> orderLines = orderLineService.getOrderLinesByCommandNumber(commandNumber);
-        return new ResponseEntity<>(orderLines, HttpStatus.OK);
+
+        // Convertir chaque OrderLine → OrderLineResponseDTO
+        List<OrderLineResponseDTO> responseDTOs = orderLines.stream()
+                .map(OrderLineMapper::toResponseDTO)
+                .toList();
+
+        return new ResponseEntity<>(responseDTOs, HttpStatus.OK);
     }
 
     // READ - Récupérer les commandes contenant un produit
     @GetMapping("/product/{productCode}")
-    public ResponseEntity<List<OrderLine>> getOrderLinesByProductCode(@PathVariable String productCode) {
+    public ResponseEntity<List<OrderLineResponseDTO>> getOrderLinesByProductCode(@PathVariable String productCode) {
         List<OrderLine> orderLines = orderLineService.getOrderLinesByProductCode(productCode);
-        return new ResponseEntity<>(orderLines, HttpStatus.OK);
+
+        // Convertir chaque OrderLine → OrderLineResponseDTO
+        List<OrderLineResponseDTO> responseDTOs = orderLines.stream()
+                .map(OrderLineMapper::toResponseDTO)
+                .toList();
+
+        return new ResponseEntity<>(responseDTOs, HttpStatus.OK);
     }
 
     // DELETE - Supprimer une ligne de commande
