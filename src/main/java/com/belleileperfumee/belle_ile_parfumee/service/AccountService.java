@@ -3,6 +3,7 @@ package com.belleileperfumee.belle_ile_parfumee.service;
 import com.belleileperfumee.belle_ile_parfumee.entity.Account;
 import com.belleileperfumee.belle_ile_parfumee.repository.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -13,25 +14,33 @@ public class AccountService {
     @Autowired
     private AccountRepository accountRepository;
 
-    // Créer un nouveau compte (inscription)
+    @Autowired
+    private PasswordEncoder passwordEncoder; // ✅ BCrypt déjà là
+
+    // Créer un nouveau compte
     public Account createAccount(Account account) {
         // Vérifier si l'email existe déjà
-        if (accountRepository.existsByEmail(account.getEmail())) {
-            return null; // Email déjà utilisé
+        if (emailExists(account.getEmail())) {
+            return null;
         }
 
-        // TODO: Ajouter le hashage du mot de passe ici plus tard (BCrypt)
+        // ✅ HASHER le mot de passe avant de sauvegarder
+        String hashedPassword = passwordEncoder.encode(account.getPassword());
+        account.setPassword(hashedPassword);
+
         return accountRepository.save(account);
     }
 
-    // Connexion (vérifier email + password)
+    // Vérifier les identifiants lors du login
     public Account login(String email, String password) {
-        Optional<Account> account = accountRepository.findByEmail(email);
+        Optional<Account> accountOpt = accountRepository.findByEmail(email);
 
-        if (account.isPresent()) {
-            // TODO: Comparer avec le hash du mot de passe plus tard
-            if (account.get().getPassword().equals(password)) {
-                return account.get();
+        if (accountOpt.isPresent()) {
+            Account account = accountOpt.get();
+
+            // ✅ VÉRIFIER le mot de passe avec BCrypt
+            if (passwordEncoder.matches(password, account.getPassword())) {
+                return account; // Login réussi
             }
         }
 
