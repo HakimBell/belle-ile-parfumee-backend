@@ -3,13 +3,14 @@ import { useProducts } from '../../hooks/useProducts';
 import { useProductActions} from "../../hooks/UseProductActions.ts";
 import Modal from '../../components/Modal';
 import ProductForm from '../../components/ProductForm';
-import type { CreateProductDto } from '../../types/Product';
+import type { Product, CreateProductDto } from '../../types/Product';
 import './AdminProducts.css';
 
 const AdminProducts: React.FC = () => {
     const { products, loading, error, refetch } = useProducts();
-    const { deleteProduct, createProduct, loading: actionLoading } = useProductActions();
+    const { deleteProduct, createProduct, updateProduct, loading: actionLoading } = useProductActions();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
     const handleDelete = async (productCode: string, productName: string) => {
         const confirmed = window.confirm(
@@ -32,6 +33,28 @@ const AdminProducts: React.FC = () => {
             setIsModalOpen(false);
             await refetch();
         }
+    };
+
+    const handleEdit = async (product: CreateProductDto) => {
+        if (!editingProduct) return;
+
+        const updated = await updateProduct(editingProduct.productCode, product);
+
+        if (updated) {
+            setIsModalOpen(false);
+            setEditingProduct(null);
+            await refetch();
+        }
+    };
+
+    const openEditModal = (product: Product) => {
+        setEditingProduct(product);
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setEditingProduct(null);
     };
 
     if (loading) return <div>Chargement...</div>;
@@ -69,7 +92,12 @@ const AdminProducts: React.FC = () => {
                             <td>{product.stock}</td>
                             <td>{product.gender}</td>
                             <td>
-                                <button className="btn-edit">✏️</button>
+                                <button
+                                    className="btn-edit"
+                                    onClick={() => openEditModal(product)}
+                                >
+                                    ✏️
+                                </button>
                                 <button
                                     className="btn-delete"
                                     onClick={() => handleDelete(product.productCode, product.name)}
@@ -86,12 +114,14 @@ const AdminProducts: React.FC = () => {
 
             <Modal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                title="Ajouter un produit"
+                onClose={closeModal}
+                title={editingProduct ? 'Modifier le produit' : 'Ajouter un produit'}
             >
                 <ProductForm
-                    onSubmit={handleCreate}
-                    onCancel={() => setIsModalOpen(false)}
+                    onSubmit={editingProduct ? handleEdit : handleCreate}
+                    onCancel={closeModal}
+                    initialData={editingProduct || undefined}
+                    isEdit={!!editingProduct}
                 />
             </Modal>
         </div>

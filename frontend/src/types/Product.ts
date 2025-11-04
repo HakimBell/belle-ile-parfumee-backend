@@ -13,7 +13,7 @@ export interface Product {
 }
 
 export interface CreateProductDto {
-    productCode: string;
+    productCode?: string;
     name: string;
     brand: string;
     price: number;

@@ -5,10 +5,12 @@ import './ProductForm.css';
 interface ProductFormProps {
     onSubmit: (product: CreateProductDto) => Promise<void>;
     onCancel: () => void;
+    initialData?: CreateProductDto;
+    isEdit?: boolean;
 }
 
-const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
-    const [formData, setFormData] = useState<CreateProductDto>({
+const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel, initialData, isEdit = false }) => {
+    const [formData, setFormData] = useState<CreateProductDto>(initialData || {
         name: '',
         brand: '',
         price: 0,
@@ -43,7 +45,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
     return (
         <form onSubmit={handleSubmit} className="product-form">
             <div className="form-row">
-
                 <div className="form-group">
                     <label htmlFor="name">Nom *</label>
                     <input
@@ -55,9 +56,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
                         required
                     />
                 </div>
-            </div>
 
-            <div className="form-row">
                 <div className="form-group">
                     <label htmlFor="brand">Marque *</label>
                     <input
@@ -69,7 +68,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
                         required
                     />
                 </div>
+            </div>
 
+            <div className="form-row">
                 <div className="form-group">
                     <label htmlFor="price">Prix (€) *</label>
                     <input
@@ -83,9 +84,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
                         required
                     />
                 </div>
-            </div>
 
-            <div className="form-row">
                 <div className="form-group">
                     <label htmlFor="stock">Stock *</label>
                     <input
@@ -98,7 +97,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
                         required
                     />
                 </div>
+            </div>
 
+            <div className="form-row">
                 <div className="form-group">
                     <label htmlFor="size">Taille (ml) *</label>
                     <input
@@ -111,9 +112,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
                         required
                     />
                 </div>
-            </div>
 
-            <div className="form-row">
                 <div className="form-group">
                     <label htmlFor="concentrationType">Type *</label>
                     <select
@@ -128,21 +127,21 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
                         <option value="Eau de Cologne">Eau de Cologne</option>
                     </select>
                 </div>
+            </div>
 
-                <div className="form-group">
-                    <label htmlFor="gender">Genre *</label>
-                    <select
-                        id="gender"
-                        name="gender"
-                        value={formData.gender}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="Homme">Homme</option>
-                        <option value="Femme">Femme</option>
-                        <option value="Mixte">Mixte</option>
-                    </select>
-                </div>
+            <div className="form-group">
+                <label htmlFor="gender">Genre *</label>
+                <select
+                    id="gender"
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    required
+                >
+                    <option value="Homme">Homme</option>
+                    <option value="Femme">Femme</option>
+                    <option value="Mixte">Mixte</option>
+                </select>
             </div>
 
             <div className="form-group">
@@ -172,7 +171,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, onCancel }) => {
                     Annuler
                 </button>
                 <button type="submit" className="btn-submit" disabled={loading}>
-                    {loading ? 'Ajout en cours...' : 'Ajouter le produit'}
+                    {loading ? (isEdit ? 'Modification...' : 'Ajout en cours...') : (isEdit ? 'Modifier le produit' : 'Ajouter le produit')}
                 </button>
             </div>
         </form>
