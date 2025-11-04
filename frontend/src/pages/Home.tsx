@@ -1,31 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Header from '../components/Header';
 import ProductCard from '../components/ProductCard';
-import { productService} from "../services/ProductService.ts";
-import type { Product } from '../types/Product';
+import { useProducts } from '../hooks/useProducts';
 import './Home.css';
 
 const Home: React.FC = () => {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                setLoading(true);
-                const data = await productService.getAllProducts();
-                setProducts(data);
-            } catch (err) {
-                setError('Erreur lors du chargement des produits');
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchProducts().catch(console.error);
-    }, []);
+    const { products, loading, error } = useProducts();
 
     return (
         <div>
