@@ -3,6 +3,7 @@ import { useProducts } from '../../hooks/useProducts';
 import { useProductActions} from "../../hooks/UseProductActions.ts";
 import Modal from '../../components/Modal';
 import ProductForm from '../../components/ProductForm';
+import AdminLayout from "../../layouts/AdminLayout.tsx";
 import type { Product, CreateProductDto } from '../../types/Product';
 import './AdminProducts.css';
 
@@ -61,6 +62,7 @@ const AdminProducts: React.FC = () => {
     if (error) return <div>Erreur: {error}</div>;
 
     return (
+        <AdminLayout>
         <div className="admin-products-container">
             <header className="products-header">
                 <h1>Gestion des Produits</h1>
@@ -125,6 +127,7 @@ const AdminProducts: React.FC = () => {
                 />
             </Modal>
         </div>
+        </AdminLayout>
     );
 };
 
