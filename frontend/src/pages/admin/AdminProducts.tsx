@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useProducts } from '../../hooks/useProducts';
 import { useProductActions} from "../../hooks/UseProductActions.ts";
+import Modal from '../../components/Modal';
+import ProductForm from '../../components/ProductForm';
+import type { CreateProductDto } from '../../types/Product';
 import './AdminProducts.css';
 
 const AdminProducts: React.FC = () => {
     const { products, loading, error, refetch } = useProducts();
-    const { deleteProduct, loading: actionLoading } = useProductActions();
+    const { deleteProduct, createProduct, loading: actionLoading } = useProductActions();
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const handleDelete = async (productCode: string, productName: string) => {
         const confirmed = window.confirm(
@@ -17,7 +21,16 @@ const AdminProducts: React.FC = () => {
         const success = await deleteProduct(productCode);
 
         if (success) {
-            await refetch(); // Recharge la liste sans recharger la page
+            await refetch();
+        }
+    };
+
+    const handleCreate = async (product: CreateProductDto) => {
+        const newProduct = await createProduct(product);
+
+        if (newProduct) {
+            setIsModalOpen(false);
+            await refetch();
         }
     };
 
@@ -28,7 +41,9 @@ const AdminProducts: React.FC = () => {
         <div className="admin-products-container">
             <header className="products-header">
                 <h1>Gestion des Produits</h1>
-                <button className="btn-primary">+ Ajouter un produit</button>
+                <button className="btn-primary" onClick={() => setIsModalOpen(true)}>
+                    + Ajouter un produit
+                </button>
             </header>
 
             <div className="products-table-container">
@@ -68,6 +83,17 @@ const AdminProducts: React.FC = () => {
                     </tbody>
                 </table>
             </div>
+
+            <Modal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                title="Ajouter un produit"
+            >
+                <ProductForm
+                    onSubmit={handleCreate}
+                    onCancel={() => setIsModalOpen(false)}
+                />
+            </Modal>
         </div>
     );
 };
