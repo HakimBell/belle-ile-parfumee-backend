@@ -1,0 +1,24 @@
+.product-list-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 24px;
+}
+
+.loading-message,
+.error-message,
+.no-products {
+    text-align: center;
+    padding: 60px 24px;
+    font-size: 18px;
+    color: var(--color-gray-medium);
+}
+
+.error-message {
+    color: #FF4444;
+}
+
+@media (max-width: 768px) {
+    .product-list-container {
+        padding: 40px 16px;
+    }
+}

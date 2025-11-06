@@ -23,9 +23,9 @@ const Header: React.FC = () => {
 
                 <nav className="nav">
                     <a href="/">Accueil</a>
-                    <a href="/hommes">Parfums Hommes</a>
-                    <a href="/femmes">Parfums Femmes</a>
-                    <a href="/mixtes">Parfums Mixtes</a>
+                    <a href="/parfums/hommes">Parfums Hommes</a>
+                    <a href="/parfums/femmes">Parfums Femmes</a>
+                    <a href="/parfums/mixtes">Parfums Mixtes</a>
                     <a href="/nouveautes">Nouveautés</a>
                 </nav>
 

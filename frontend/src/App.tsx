@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import AdminProducts from './pages/admin/AdminProducts';
 import ProductDetail from "./pages/ProductDetail.tsx";
+import ParfumsPage from './pages/ParfumsPage';
 import './App.css';
 
 const App: React.FC = () => {
@@ -13,6 +14,7 @@ const App: React.FC = () => {
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/product/:productCode" element={<ProductDetail />} />
+                <Route path="/parfums/:category" element={<ParfumsPage />} />
                 <Route path="/admin/products" element={<AdminProducts />} />
             </Routes>
         </Router>
