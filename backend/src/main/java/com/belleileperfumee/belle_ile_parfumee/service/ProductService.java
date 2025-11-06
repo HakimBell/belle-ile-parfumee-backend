@@ -49,12 +49,21 @@ public class ProductService {
         return productRepository.findByProductCode(productCode);
     }
 
-    // UPDATE - Modifier un produit existant
+    @Transactional
     public Product updateProduct(Product updatedProduct) {
-        if (productRepository.existsById(updatedProduct.getProductCode())) {
-            return productRepository.save(updatedProduct);
-        }
-        return null; // Produit non trouvé
+        // Cherche le produit existant par son code
+        return productRepository.findById(updatedProduct.getProductCode())
+                .map(existingProduct -> {
+                    // Mettre à jour uniquement les champs fournis
+                    existingProduct.setName(updatedProduct.getName());
+                    existingProduct.setPrice(updatedProduct.getPrice());
+                    existingProduct.setDescription(updatedProduct.getDescription());
+                    existingProduct.setBrand(updatedProduct.getBrand());
+                    existingProduct.setGender(updatedProduct.getGender());
+                    existingProduct.setImageUrl(updatedProduct.getImageUrl());
+                    return productRepository.save(existingProduct);
+                })
+                .orElse(null); // Si le produit n'existe pas, retourne null
     }
 
     // DELETE - Supprimer un produit

@@ -5,14 +5,14 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-
+import java.util.UUID;
 @Entity
 @Table(name = "products")
 @Data
 public class Product {
 
     @Id
-    @Column(name = "product_code", length = 50)
+    @Column(name = "product_code", length = 50, nullable = false, updatable = false)
     private String productCode;
 
     @Column(length = 100, nullable = false)
@@ -48,5 +48,8 @@ public class Product {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDate.now();
+        if (this.productCode == null || this.productCode.isBlank()) {
+            this.productCode = "PROD-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
+        }
     }
 }

@@ -13,6 +13,7 @@ import java.util.Map;
 
 @Component
 public class JwtUtil {
+    private final String SECRET = "MaCleSuperSecretePourJWTQuiDoitFaire256BitsMin!";
 
     // Clé secrète pour signer les tokens (comme un mot de passe)
     private final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
