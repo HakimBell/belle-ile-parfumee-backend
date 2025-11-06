@@ -1,7 +1,21 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { authService } from '../services/authService';
 import './Header.css';
 
 const Header: React.FC = () => {
+    const navigate = useNavigate();
+    const isAuthenticated = authService.isAuthenticated();
+
+    const handleLoginClick = () => {
+        navigate('/login');
+    };
+
+    const handleLogout = () => {
+        authService.removeToken();
+        window.location.href = '/';
+    };
+
     return (
         <header className="header">
             <div className="header-container">
@@ -16,11 +30,29 @@ const Header: React.FC = () => {
                 </nav>
 
                 <div className="header-icons">
-                    <button className="icon-btn">♡</button>
-                    <button className="icon-btn">
-                        🛒
-                        <span className="cart-badge">0</span>
-                    </button>
+                    {isAuthenticated ? (
+                        <>
+                            <button className="icon-btn">♡</button>
+                            <button className="icon-btn">
+                                🛒
+                                <span className="cart-badge">0</span>
+                            </button>
+                            <button className="login-btn" onClick={handleLogout}>
+                                Déconnexion
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <button className="icon-btn">♡</button>
+                            <button className="icon-btn">
+                                🛒
+                                <span className="cart-badge">0</span>
+                            </button>
+                            <button className="login-btn" onClick={handleLoginClick}>
+                                Se connecter
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
         </header>

@@ -24,7 +24,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 </div>
 
                 <nav className="sidebar-nav">
-                    <a href="/" className="nav-item" target="_blank">
+                    <a href="/" className="nav-item">
                          Voir le site
                     </a>
                     <a href="/admin/products" className="nav-item">
